@@ -1,0 +1,78 @@
+<style>
+  body { padding: 10px 16px; }
+  .server { display: flex; align-items: center; gap: 11px; padding: 8px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.07); }
+  .server:last-of-type { border-bottom: 0; }
+  .dot { flex: none; width: 9px; height: 9px; border-radius: 50%; background: rgba(255,255,255,0.22); }
+  .server.up .dot { background: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent); }
+  .name { flex: 1; min-width: 0; }
+  .name b { display: block; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .name span { display: block; font-size: 11px; opacity: .55; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .count { flex: none; font-variant-numeric: tabular-nums; font-weight: 600; }
+  .server:not(.up) .count { opacity: .45; font-weight: 400; }
+  .friends { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+  .friend { font-size: 11px; padding: 3px 9px; border-radius: 999px;
+            background: color-mix(in srgb, var(--accent) 16%, transparent); color: #fff; }
+  .friend i { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--accent);
+              margin-right: 6px; vertical-align: middle; }
+  .empty { opacity: .6; padding: 14px 0; }
+</style>
+
+<div id="servers"></div>
+<div class="friends" id="friends"></div>
+
+<script>
+  // The MOTD as plain text: colour codes stripped, both lines joined.
+  function plain(motd) { return String(motd || "").replace(/§./g, "").replace(/\s+/g, " ").trim(); }
+
+  function render(pulse) {
+    var servers = document.getElementById("servers");
+    servers.textContent = "";
+    var rows = (pulse && pulse.servers) || [];
+    if (rows.length === 0) {
+      var empty = document.createElement("div");
+      empty.className = "empty";
+      empty.textContent = "No servers yet.";
+      servers.appendChild(empty);
+    }
+    rows.forEach(function (s) {
+      var row = document.createElement("div");
+      row.className = "server" + (s.online ? " up" : "");
+      row.title = s.address;
+      var dot = document.createElement("i");
+      dot.className = "dot";
+      var name = document.createElement("div");
+      name.className = "name";
+      var b = document.createElement("b");
+      b.textContent = s.name;
+      var sub = document.createElement("span");
+      sub.textContent = s.online ? (plain(s.motd) || s.version || s.address) : "Offline";
+      name.appendChild(b);
+      name.appendChild(sub);
+      var count = document.createElement("div");
+      count.className = "count";
+      count.textContent = s.online && s.players != null ? s.players.toLocaleString() + " / " + (s.max || 0).toLocaleString() : "Offline";
+      row.appendChild(dot);
+      row.appendChild(name);
+      row.appendChild(count);
+      servers.appendChild(row);
+    });
+
+    var friends = document.getElementById("friends");
+    friends.textContent = "";
+    ((pulse && pulse.friends) || []).forEach(function (f) {
+      var chip = document.createElement("span");
+      chip.className = "friend";
+      chip.innerHTML = "<i></i>";
+      chip.appendChild(document.createTextNode(f.username));
+      if (f.playing && (f.playing.server || f.playing.pack)) chip.title = f.playing.server || f.playing.pack;
+      friends.appendChild(chip);
+    });
+  }
+
+  async function poll() {
+    try { render(await mc2.storage.get("pulse")); } catch (e) { /* the next poll tries again */ }
+  }
+  poll();
+  setInterval(poll, 5000);
+</script>

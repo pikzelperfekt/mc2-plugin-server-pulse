@@ -1,0 +1,16 @@
+{
+  "id": "server-pulse",
+  "name": "Server Pulse",
+  "version": "1.0.0",
+  "author": "pikzelperfekt",
+  "authorUrl": "https://github.com/pikzelperfekt",
+  "description": "Your favourite servers' live status and player counts on the Play screen, and a heads-up when a friend comes online or a server comes back.",
+  "repo": "pikzelperfekt/mc2-plugin-server-pulse",
+  "main": "main.js",
+  "permissions": ["servers", "friends", "storage", "ui"],
+  "settings": [
+    { "key": "favourites", "type": "text", "label": "Servers (addresses, comma separated)", "default": "" },
+    { "key": "friendAlerts", "type": "toggle", "label": "Tell me when a friend comes online", "default": true },
+    { "key": "serverAlerts", "type": "toggle", "label": "Tell me when a server comes back", "default": true }
+  ]
+}
